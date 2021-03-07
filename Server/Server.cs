@@ -11,7 +11,6 @@ namespace SocketTcpServer
 {
     class Server
     {
-
         static void Main(string[] args)
         {
             StartServer();
