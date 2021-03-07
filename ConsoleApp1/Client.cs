@@ -15,6 +15,8 @@ namespace SocketTcpServer
         {
             this.nickname = nickname;
             this.clientSocket = clientSocket;
+
+            
         }
 
         public Socket CSocket
