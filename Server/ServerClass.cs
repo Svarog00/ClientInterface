@@ -12,8 +12,8 @@ namespace SocketTcpServer
     class ServerClass
     {
         Thread Messages;
-        int currentClients = 0;
-        List<Client> Handlers = new List<Client>();
+        static int currentClients = 0;
+        static List<Client> Handlers = new List<Client>();
         int port = 8005; // порт для приема входящих запросов
 
         public ServerClass()
@@ -32,10 +32,6 @@ namespace SocketTcpServer
                 listenSocket.Listen(10);
 
                 Console.WriteLine("Сервер запущен. Ожидание подключений...");
-
-                Messages = new Thread(() => Chatting());
-                Messages.Start();
-
                 while (true)
                 {
                     Socket handler = listenSocket.Accept();
@@ -61,47 +57,17 @@ namespace SocketTcpServer
             }
         }
 
-        void Chatting()
+        static public void DisconnectClient(Client client)
         {
-            // получаем сообщение
-            StringBuilder builder = new StringBuilder();
-            byte[] data = new byte[256]; // буфер для получаемых данных
-
-            while (true)
-            {
-                for (int i = 0; i < currentClients; i++)
-                {
-                    do
-                    {
-                        int bytes = Handlers[i].CSocket.Receive(data);
-                        builder.Append(Encoding.Unicode.GetString(data, 0, bytes));
-                    }
-                    while (Handlers[i].CSocket.Available > 0);
-
-                    Console.WriteLine(Handlers[i].Nickname + ": " + builder);
-
-                    string str = Handlers[i].Nickname + ": " + builder; //создание строки "Клиент: (сообщение)"
-                    byte[] strB = Encoding.Unicode.GetBytes(str);
-                    Distribution(Handlers, strB);
-
-                    if (builder.ToString() == "/disconnect")
-                    {
-                        // отключение клиента
-                        Handlers[i].CSocket.Disconnect(true);
-                        Handlers[i].CSocket.Close();
-                        Handlers.Remove(Handlers[i]);
-                        currentClients--;
-                    }
-                    builder.Clear(); //очистка буфера StringBuilder
-                }
-            }
+            Handlers.Remove(client);
+            currentClients--;
         }
 
-        public void Distribution(List<Client> handlers, byte[] data)
+        static public void Distribution(byte[] data)
         {
             for (int i = 0; i < currentClients; i++)
             {
-                handlers[i].CSocket.Send(data);
+                Handlers[i].CSocket.Send(data);
             }
         }
 
